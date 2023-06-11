@@ -59,7 +59,7 @@ public struct BuilderMacro: MemberMacro {
 @main
 struct BuilderMacroPlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [
-        
+        BuilderMacro.self
     ]
 }
 

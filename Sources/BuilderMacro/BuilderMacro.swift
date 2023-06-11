@@ -1,3 +1,6 @@
-// The Swift Programming Language
-// https://docs.swift.org/swift-book
-
+/// A macro that produces Builder
+@attached(member, names: arbitrary)
+public macro Builder() = #externalMacro(
+    module: "BuilderMacro",
+    type: "BuilderMacro"
+)
