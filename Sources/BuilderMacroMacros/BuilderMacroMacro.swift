@@ -4,11 +4,6 @@ import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
 public struct BuilderMacro: MemberMacro {
-    struct TypedVariable {
-        let name: String
-        let type: String
-    }
-
     enum Error: Swift.Error {
         case failedToFindSymbol(String)
         case wrongDeclarationSyntax
@@ -27,6 +22,9 @@ public struct BuilderMacro: MemberMacro {
         guard let memberName = declaration.name else {
             throw Error.failedToFindSymbol("Missing Declaration Name")
         }
+
+        let memberVariables = declaration.typedMembers
+
         return []
     }
 }
@@ -36,6 +34,21 @@ struct BuilderMacroPlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [
         
     ]
+}
+
+extension DeclGroupSyntax {
+    fileprivate var typedMembers: [TypedVariable] {
+        storedVariables.compactMap { property -> TypedVariable? in
+            guard let name = property.name,
+                  let type = property.typeString else {
+                return nil
+            }
+            return TypedVariable(
+                name: name,
+                type: type
+            )
+        }
+    }
 }
 
 extension BuilderMacro.Error: CustomStringConvertible {
@@ -49,7 +62,36 @@ extension BuilderMacro.Error: CustomStringConvertible {
     }
 }
 
-extension BuilderMacro.TypedVariable {
+private struct TypedVariable {
+    let name: String
+    let type: String
+}
+
+extension [TypedVariable] {
+    var publicVariables: String {
+        map(\.publicOptionalVarDefinition)
+        .joined(separator: "\n")
+    }
+
+    var fillAssignments: String {
+        map { $0.assignment(from: "item", isOptional: true) }
+        .joined(separator: "\n")
+    }
+
+    var buildGuards: String {
+        "guard " + self
+            .filter { !$0.isOptional }
+            .compactMap(\.guardCheck)
+            .joined(separator: ", ")
+    }
+
+    var initAssignments: String {
+        map(\.initAssignment)
+        .joined(separator: ",\n")
+    }
+}
+
+extension TypedVariable {
     func assignment(
         from property: String,
         isOptional: Bool
