@@ -9,6 +9,11 @@ public struct BuilderMacro: MemberMacro {
         let type: String
     }
 
+    enum Error: Swift.Error {
+        case failedToFindSymbol(String)
+        case wrongDeclarationSyntax
+    }
+
     public static func expansion<
         Declaration: DeclGroupSyntax, Context: MacroExpansionContext
     >(
@@ -16,7 +21,13 @@ public struct BuilderMacro: MemberMacro {
         providingMembersOf declaration: Declaration,
         in context: Context
     ) throws -> [DeclSyntax] {
-        []
+        guard declaration.isStruct else {
+            throw Error.wrongDeclarationSyntax
+        }
+        guard let memberName = declaration.name else {
+            throw Error.failedToFindSymbol("Missing Declaration Name")
+        }
+        return []
     }
 }
 
@@ -25,6 +36,17 @@ struct BuilderMacroPlugin: CompilerPlugin {
     let providingMacros: [Macro.Type] = [
         
     ]
+}
+
+extension BuilderMacro.Error: CustomStringConvertible {
+    var description: String {
+        switch self {
+        case .failedToFindSymbol(let symbol):
+            return "Couldn't find symbol: \(symbol)"
+        case .wrongDeclarationSyntax:
+            return "Builder Macro supports only structs"
+        }
+    }
 }
 
 extension BuilderMacro.TypedVariable {
