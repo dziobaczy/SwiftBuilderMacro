@@ -23,9 +23,36 @@ public struct BuilderMacro: MemberMacro {
             throw Error.failedToFindSymbol("Missing Declaration Name")
         }
 
-        let memberVariables = declaration.typedMembers
+        let vars = declaration.typedMembers
 
-        return []
+        return ["""
+        public class Builder {
+        \(raw: vars.publicVariables)
+        public init() {
+        }
+
+        public convenience init(_ item: \(raw: memberName)?) {
+            self.init()
+            fill(with: item)
+        }
+
+        public func fill(with item: \(raw: memberName)?) {
+            \(raw: vars.fillAssignments)
+        }
+
+        public func build() -> \(raw: memberName)? {
+            \(raw: vars.buildGuards) else { return nil }
+            return \(raw: memberName)(
+            \(raw: vars.initAssignments)
+            )
+        }
+        }
+
+        public static func makeBuilder() -> Builder {
+            Builder()
+        }
+        """
+        ]
     }
 }
 
