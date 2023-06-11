@@ -17,8 +17,14 @@ public struct BuilderMacro: MemberMacro {
         in context: Context
     ) throws -> [DeclSyntax] {
         guard declaration.isStruct else {
-            throw Error.wrongDeclarationSyntax
+            guard let diagnostic = Diagnostics.diagnose(declaration: declaration) else {
+                throw Error.wrongDeclarationSyntax
+            }
+
+            context.diagnose(diagnostic)
+            return []
         }
+
         guard let memberName = declaration.name else {
             throw Error.failedToFindSymbol("Missing Declaration Name")
         }
