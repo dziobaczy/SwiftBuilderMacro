@@ -1,6 +1,6 @@
 /// A macro that produces Builder
 @attached(member, names: arbitrary)
 public macro Builder() = #externalMacro(
-    module: "BuilderMacro",
+    module: "BuilderMacroMacros",
     type: "BuilderMacro"
 )
