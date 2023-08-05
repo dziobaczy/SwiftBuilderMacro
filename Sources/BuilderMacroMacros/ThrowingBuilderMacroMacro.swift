@@ -5,7 +5,6 @@ import SwiftSyntaxMacros
 
 public struct ThrowingBuilderMacro: MemberMacro {
     enum Error: Swift.Error {
-        case failedToFindSymbol(String)
         case wrongDeclarationSyntax
     }
 
