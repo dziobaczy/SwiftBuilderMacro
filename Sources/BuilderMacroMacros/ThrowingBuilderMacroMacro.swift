@@ -3,8 +3,9 @@ import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
-public struct BuilderMacro: MemberMacro {
+public struct ThrowingBuilderMacro: MemberMacro {
     enum Error: Swift.Error {
+        case failedToFindSymbol(String)
         case wrongDeclarationSyntax
     }
 
@@ -24,25 +25,7 @@ public struct BuilderMacro: MemberMacro {
             return []
         }
 
-        let bodyGenerator = BuilderBodyGenerator()
+        let bodyGenerator = BuilderBodyGenerator(configuration: .throwing)
         return try bodyGenerator.generateBody(from: declaration)
-    }
-}
-
-
-@main
-struct BuilderMacroPlugin: CompilerPlugin {
-    let providingMacros: [Macro.Type] = [
-        BuilderMacro.self,
-        ThrowingBuilderMacro.self
-    ]
-}
-
-extension BuilderMacro.Error: CustomStringConvertible {
-    var description: String {
-        switch self {
-        case .wrongDeclarationSyntax:
-            return "Builder Macro supports only structs"
-        }
     }
 }
