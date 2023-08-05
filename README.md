@@ -23,6 +23,9 @@ Is equivalent of writing this by hand
 
 ![image](https://github.com/dziobaczy/SwiftBuilderMacro/assets/24880265/02af1926-bdf8-4904-842a-57268c9c8305)
 
+If you want to understand the reason behind builder not being able to build your model use `@ThrowingBuilder` which will throw an error telling about the first missing property which was required to be present
+
+![image](https://github.com/dziobaczy/SwiftBuilderMacro/assets/24880265/a2a82438-56bb-4a10-8257-873c7cd0529a)
 
 ## Extra Builder Features
 
