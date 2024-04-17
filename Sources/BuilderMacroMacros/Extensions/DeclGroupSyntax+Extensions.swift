@@ -11,7 +11,7 @@ extension DeclGroupSyntax {
     /// Declaration name
     /// example: struct User will return "User"
     var name: String? {
-        asProtocol(IdentifiedDeclSyntax.self)?.identifier.text
+        asProtocol(NamedDeclSyntax.self)?.name.text
     }
 
     var storedVariables: [VariableDeclSyntax] {
