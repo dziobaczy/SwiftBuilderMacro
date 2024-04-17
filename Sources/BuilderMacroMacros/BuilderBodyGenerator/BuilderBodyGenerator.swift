@@ -22,6 +22,7 @@ struct BuilderBodyGenerator {
     fileprivate struct TypedVariable {
         let name: String
         let type: String
+        let hasDefaultValue: Bool
     }
     
     struct Configuration {
@@ -40,16 +41,25 @@ struct BuilderBodyGenerator {
         guard let memberName = declaration.name else {
             throw Error.missingDeclarationName
         }
-        
+
+        var paramsWithDefaultValue = [String]()
+        if let initializer = declaration.initializer {
+            for parameter in initializer.signature.parameterClause.parameters {
+                if parameter.defaultValue != nil {
+                    paramsWithDefaultValue.append(parameter.firstName.trimmed.text)
+                }
+            }
+        }
+
         if configuration.isThrowing {
             return generateThrowingBody(
                 memberName: memberName,
-                vars: declaration.typedMembers
+                vars: declaration.typedMembers(paramsWithDefaultValue: paramsWithDefaultValue)
             )
         } else {
             return generateBody(
                 memberName: memberName,
-                vars: declaration.typedMembers
+                vars: declaration.typedMembers(paramsWithDefaultValue: paramsWithDefaultValue)
             )
         }
     }
@@ -148,17 +158,25 @@ extension [BuilderBodyGenerator.TypedVariable] {
         .joined(separator: "\n")
     }
     
+    fileprivate var variablesToGuard: [BuilderBodyGenerator.TypedVariable] {
+        filter { !$0.isOptional && !$0.hasDefaultValue && !$0.isUUID }
+    }
+
     var throwingBuildGuards: String {
-        self
-            .filter { !$0.isOptional }
-            .compactMap(\.throwingGuardCheck)
+        if variablesToGuard.isEmpty {
+            return ""
+        }
+        return variablesToGuard
+            .map(\.throwingGuardCheck)
             .joined()
     }
 
     var buildGuards: String {
-        "guard " + self
-            .filter { !$0.isOptional }
-            .compactMap(\.guardCheck)
+        if variablesToGuard.isEmpty {
+            return ""
+        }
+        return "guard " + variablesToGuard
+            .map(\.guardCheck)
             .joined(separator: ", ")
         + " else { return nil }"
     }
@@ -187,16 +205,12 @@ extension BuilderBodyGenerator.TypedVariable {
         "public var \(name): \(optionalType)"
     }
     
-    var throwingGuardCheck: String? {
-        return isUUID
-        ? nil
-        : "guard let \(name) else { throw Error.missingValue(property: \"\(name)\") }"
+    var throwingGuardCheck: String {
+        return "guard let \(name) else { throw Error.missingValue(property: \"\(name)\") }"
     }
 
-    var guardCheck: String? {
-        return isUUID
-        ? nil
-        : "let \(name)"
+    var guardCheck: String {
+        return "let \(name)"
     }
 
     var isUUID: Bool { name == "uuid" }
@@ -210,7 +224,7 @@ extension BuilderBodyGenerator.TypedVariable {
 extension DeclGroupSyntax {
     /// Produces convenience structs from stored properties
     /// with name and type accessible as strings
-    fileprivate var typedMembers: [BuilderBodyGenerator.TypedVariable] {
+    fileprivate func typedMembers(paramsWithDefaultValue: [String]) -> [BuilderBodyGenerator.TypedVariable] {
         storedVariables.compactMap { property -> BuilderBodyGenerator.TypedVariable? in
             guard let name = property.name,
                   let type = property.typeString else {
@@ -218,7 +232,8 @@ extension DeclGroupSyntax {
             }
             return BuilderBodyGenerator.TypedVariable(
                 name: name,
-                type: type
+                type: type,
+                hasDefaultValue: paramsWithDefaultValue.contains(name)
             )
         }
     }

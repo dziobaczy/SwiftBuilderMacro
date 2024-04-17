@@ -63,7 +63,72 @@ final class BuilderMacroTests: XCTestCase {
             macros: testMacros
         )
     }
-    
+
+    func testBuilderMacro_skipGuardingDefaultValues() {
+        assertMacroExpansion("""
+            @Builder
+            struct User {
+                let uuid: UUID
+                let name: String
+                let age: Int?
+
+                init(uuid: UUID, name: String = "Foo", age: Int? = nil) {
+                    self.uuid = uuid
+                    self.name = name
+                    self.age = age
+                }
+            }
+            """,
+            expandedSource: """
+
+            struct User {
+                let uuid: UUID
+                let name: String
+                let age: Int?
+
+                init(uuid: UUID, name: String = "Foo", age: Int? = nil) {
+                    self.uuid = uuid
+                    self.name = name
+                    self.age = age
+                }
+
+                public class Builder {
+                    public var uuid: UUID?
+                    public var name: String?
+                    public var age: Int?
+                    public init() {
+                    }
+
+                    public convenience init(_ item: User?) {
+                        self.init()
+                        fill(with: item)
+                    }
+
+                    public func fill(with item: User?) {
+                        uuid = item?.uuid
+                        name = item?.name
+                        age = item?.age
+                    }
+
+                    public func build() -> User? {
+
+                        return User(
+                        uuid: uuid ?? UUID(),
+                        name: name,
+                        age: age
+                        )
+                    }
+                }
+
+                public static func makeBuilder() -> Builder {
+                    Builder()
+                }
+            }
+            """,
+            macros: testMacros
+        )
+    }
+
     func testThrowingBuilderMacro() {
         assertMacroExpansion("""
             @ThrowingBuilder

@@ -20,6 +20,12 @@ extension DeclGroupSyntax {
             .filter(\.isStoredProperty)
     }
 
+    var initializer: InitializerDeclSyntax? {
+        memberBlock.members.first(
+            where: { $0.decl.is(InitializerDeclSyntax.self) }
+        )?.decl.as(InitializerDeclSyntax.self)
+    }
+
     var isStruct: Bool {
         self.as(StructDeclSyntax.self) != nil
     }
