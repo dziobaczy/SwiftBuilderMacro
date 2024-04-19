@@ -13,9 +13,9 @@ final class BuilderMacroTests: XCTestCase {
         assertMacroExpansion("""
             @Builder
             struct User {
-            let uuid: UUID
-            let name: String
-            let age: Int?
+                let uuid: UUID
+                let name: String
+                let age: Int?
             }
             """,
             expandedSource: """
@@ -24,6 +24,7 @@ final class BuilderMacroTests: XCTestCase {
                 let uuid: UUID
                 let name: String
                 let age: Int?
+
                 public class Builder {
                     public var uuid: UUID?
                     public var name: String?
@@ -67,9 +68,9 @@ final class BuilderMacroTests: XCTestCase {
         assertMacroExpansion("""
             @ThrowingBuilder
             struct User {
-            let uuid: UUID
-            let name: String
-            let age: Int?
+                let uuid: UUID
+                let name: String
+                let age: Int?
             }
             """,
             expandedSource: """
@@ -78,6 +79,7 @@ final class BuilderMacroTests: XCTestCase {
                 let uuid: UUID
                 let name: String
                 let age: Int?
+
                 public class Builder {
                     private enum Error: Swift.Error {
                         case missingValue(property: String)
