@@ -12,6 +12,7 @@ import SwiftSyntaxMacros
 
 extension BuilderBodyGenerator.Configuration {
     static let throwing = Self(isThrowing: true)
+    static let fluent = Self(isFluent: true)
 }
 
 struct BuilderBodyGenerator {
@@ -26,8 +27,12 @@ struct BuilderBodyGenerator {
     
     struct Configuration {
         let isThrowing: Bool
+        let isFluent: Bool
         
-        init(isThrowing: Bool = false) { self.isThrowing = isThrowing }
+        init(isThrowing: Bool = false, isFluent: Bool = false) {
+            self.isThrowing = isThrowing
+            self.isFluent = isFluent
+        }
     }
     
     private let configuration: Configuration
@@ -43,6 +48,11 @@ struct BuilderBodyGenerator {
         
         if configuration.isThrowing {
             return generateThrowingBody(
+                memberName: memberName,
+                vars: declaration.typedMembers
+            )
+        } else if configuration.isFluent {
+            return generateFluentBody(
                 memberName: memberName,
                 vars: declaration.typedMembers
             )
@@ -86,6 +96,37 @@ extension BuilderBodyGenerator {
         ]
     }
     
+    fileprivate func generateFluentBody(
+        memberName: String,
+        vars: [TypedVariable]
+    ) -> [DeclSyntax] {//todo make these private variables for the fluent one
+        ["""
+        public class Builder {
+        \(raw: vars.publicVariables)
+        public init() {}
+        
+        \(raw: convenienceInitDecl(memberName: memberName))
+
+        public func fill(with item: \(raw: memberName)?) {
+            \(raw: vars.fillAssignments)
+        }
+        
+        \(raw: vars.fluentFunctions)
+        
+        public func build() -> \(raw: memberName)? {
+            \(raw: vars.buildGuards)
+            return \(raw: memberName)(
+            \(raw: vars.initAssignments)
+            )
+        }
+        }
+        
+        \(raw: makeBuilderDecl())
+        """
+        ]
+        
+    }
+    
     fileprivate func generateThrowingBody(
         memberName: String,
         vars: [TypedVariable]
@@ -117,6 +158,7 @@ extension BuilderBodyGenerator {
         """
         ]
     }
+
     
     private func convenienceInitDecl(memberName: String) -> String {
         """
@@ -138,6 +180,12 @@ extension BuilderBodyGenerator {
 
 // MARK: Body Fields Construction
 extension [BuilderBodyGenerator.TypedVariable] {
+    
+    var fluentFunctions: String {
+        map(\.fluentFunctionDefinition)
+        .joined(separator: "\n\n")
+    }
+    
     var publicVariables: String {
         map(\.publicOptionalVarDefinition)
         .joined(separator: "\n")
@@ -197,6 +245,15 @@ extension BuilderBodyGenerator.TypedVariable {
         return isUUID
         ? nil
         : "let \(name)"
+    }
+    
+    var fluentFunctionDefinition: String {
+        """
+        public func \(name)(_ \(name): \(optionalType)) -> Self {
+            self.\(name) = \(name)
+            return self
+        }
+        """
     }
 
     var isUUID: Bool { name == "uuid" }

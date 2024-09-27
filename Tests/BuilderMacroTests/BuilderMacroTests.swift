@@ -5,7 +5,8 @@ import BuilderMacroMacros
 
 let testMacros: [String: Macro.Type] = [
     "Builder" : BuilderMacro.self,
-    "ThrowingBuilder": ThrowingBuilderMacro.self
+    "ThrowingBuilder": ThrowingBuilderMacro.self,
+    "FluentBuilder": FluentBuilderMacro.self
 ]
 
 final class BuilderMacroTests: XCTestCase {
@@ -104,6 +105,76 @@ final class BuilderMacroTests: XCTestCase {
                     public func build() throws -> User {
                         guard let name else {
                             throw Error.missingValue(property: "name")
+                        }
+                        return User(
+                        uuid: uuid ?? UUID(),
+                        name: name,
+                        age: age
+                        )
+                    }
+                }
+
+                public static func makeBuilder() -> Builder {
+                    Builder()
+                }
+            }
+            """,
+            macros: testMacros
+        )
+    }
+    
+    func testFluentbuilderMacro() {
+        assertMacroExpansion("""
+            @FluentBuilder
+            struct User {
+                let uuid: UUID
+                let name: String
+                let age: Int?
+            }
+            """,
+            expandedSource: """
+
+            struct User {
+                let uuid: UUID
+                let name: String
+                let age: Int?
+
+                public class Builder {
+                    public var uuid: UUID?
+                    public var name: String?
+                    public var age: Int?
+                    public init() {
+                    }
+
+                    public convenience init(_ item: User?) {
+                        self.init()
+                        fill(with: item)
+                    }
+
+                    public func fill(with item: User?) {
+                        uuid = item?.uuid
+                        name = item?.name
+                        age = item?.age
+                    }
+            
+                    public func uuid(_ uuid: UUID?) -> Self {
+                        self.uuid = uuid
+                        return self
+                    }
+            
+                    public func name(_ name: String?) -> Self {
+                        self.name = name
+                        return self
+                    }
+            
+                    public func age(_ age: Int?) -> Self {
+                        self.age = age
+                        return self
+                    }
+
+                    public func build() -> User? {
+                        guard let name else {
+                            return nil
                         }
                         return User(
                         uuid: uuid ?? UUID(),

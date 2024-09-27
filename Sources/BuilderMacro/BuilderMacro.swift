@@ -11,3 +11,10 @@ public macro ThrowingBuilder() = #externalMacro(
     module: "BuilderMacroMacros",
     type: "ThrowingBuilderMacro"
 )
+
+/// A macro that produces FluentBuilder
+@attached(member, names: arbitrary)
+public macro FluentBuilder() = #externalMacro(
+    module: "BuilderMacroMacros",
+    type: "FluentBuilderMacro"
+)
