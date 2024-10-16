@@ -11,8 +11,8 @@ import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
 extension BuilderBodyGenerator.Configuration {
-    static let throwing = Self(isThrowing: true)
-    static let fluent = Self(isFluent: true)
+    static let throwing = Self(flavour: .throwing)
+    static let fluent = Self(flavour: .fluent)
 }
 
 struct BuilderBodyGenerator {
@@ -26,12 +26,16 @@ struct BuilderBodyGenerator {
     }
     
     struct Configuration {
-        let isThrowing: Bool
-        let isFluent: Bool
-        
-        init(isThrowing: Bool = false, isFluent: Bool = false) {
-            self.isThrowing = isThrowing
-            self.isFluent = isFluent
+        enum Flavour {
+            case plain
+            case throwing
+            case fluent
+        }
+
+        let flavour: Flavour
+
+        init(flavour: Flavour = .plain) {
+            self.flavour = flavour
         }
     }
     
@@ -45,19 +49,20 @@ struct BuilderBodyGenerator {
         guard let memberName = declaration.name else {
             throw Error.missingDeclarationName
         }
-        
-        if configuration.isThrowing {
-            return generateThrowingBody(
+
+        return switch configuration.flavour {
+        case .plain:
+            generateBody(
                 memberName: memberName,
                 vars: declaration.typedMembers
             )
-        } else if configuration.isFluent {
-            return generateFluentBody(
+        case .throwing:
+            generateThrowingBody(
                 memberName: memberName,
                 vars: declaration.typedMembers
             )
-        } else {
-            return generateBody(
+        case .fluent:
+            generateFluentBody(
                 memberName: memberName,
                 vars: declaration.typedMembers
             )
