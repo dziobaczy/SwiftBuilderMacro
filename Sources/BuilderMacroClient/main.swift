@@ -17,6 +17,20 @@ struct Player {
     let hp: Int
 }
 
+@FluentBuilder
+struct Quote {
+    let uuid: UUID
+    let text: String
+    let author: String
+}
+
+let quote = Quote.makeBuilder()
+    .text("What a time to be alive")
+    .author("A dude")
+    .build()
+
+print(String(describing: quote))
+
 let throwingBuilder = Player.makeBuilder()
 
 do {
