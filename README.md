@@ -23,9 +23,24 @@ Is equivalent of writing this by hand
 
 ![image](https://github.com/dziobaczy/SwiftBuilderMacro/assets/24880265/02af1926-bdf8-4904-842a-57268c9c8305)
 
-If you want to understand the reason behind builder not being able to build your model use `@ThrowingBuilder` which will throw an error telling about the first missing property which was required to be present
+There are different flavours of builders that you can use depending on your use case
+
+
+### Throwing
+
+If you want to understand the reason behind builder not being able to build your model use `@ThrowingBuilder` which will throw an error telling about the first missing property which was required to be present.
 
 ![image](https://github.com/dziobaczy/SwiftBuilderMacro/assets/24880265/a2a82438-56bb-4a10-8257-873c7cd0529a)
+
+
+### Fluent
+
+When you prefer to have a chain of building commands to get your result attach `@FluentBuilder`.
+
+<img width="1154" alt="image" src="https://github.com/user-attachments/assets/8334da4f-c37c-48e1-aada-844e67bc0283">
+
+
+
 
 ## Extra Builder Features
 
