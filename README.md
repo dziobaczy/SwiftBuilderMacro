@@ -37,7 +37,8 @@ If you want to understand the reason behind builder not being able to build your
 
 When you prefer to have a chain of building commands to get your result attach `@FluentBuilder`.
 
-<img width="1154" alt="image" src="https://github.com/user-attachments/assets/8334da4f-c37c-48e1-aada-844e67bc0283">
+<img width="706" alt="image" src="https://github.com/user-attachments/assets/7e25be85-e201-47c7-9cab-98ba902e6da0">
+
 
 
 
